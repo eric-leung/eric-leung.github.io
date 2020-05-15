@@ -67,11 +67,10 @@
             
             <h3> Structure </h3>
             <p class="lead">
-            Just like in a skip list, each of the \(n\) nodes in a skip graph is a member of multiple linked lists. The level-0 list consists of all nodes in sequence. Where a skip graph is distinguished from a skip list is that there may be many lists at level \(i\), and every
-            node participates in one of these lists. This goes until the nodes are splintered into singletons after \( O(\log n) \) levels, on average. One way to think about it is as a tree of skip lists that share lower layers. Another thing to notice is that there is always a full skip list inside of a skip graph. This can be found by grouping every level that has a node at extreme left. **image here**</p>
+            Just like in a skip list, each of the \(n\) nodes in a skip graph is a member of multiple linked lists in different levels. For example, the level-0 list consists of all nodes in sequence. Where a skip graph is distinguished from a skip list is that there will be multiple lists at level \(i\) for all \(i \geq 1\). Furthermore, every node participates in one of these lists meaning that every level will have all of the possible nodes allowing for redundnacy. This goes until the nodes are splintered into singletons after \( O(\log n) \) levels, on average. One way to think about it is as a tree of skip lists that share lower layers. Another thing to notice is that there is always a full skip list inside of a skip graph. This can be found by grouping every level that has a node at extreme left. **image here**</p>
             
             <p class="lead">
-            In a skip graph, each node \(x\) holds two fields. The first is a key, which gives the node its ordering. Without loss of generality, the keys are considered to be integers \(1, 2, . . . , n\). The second field is a membership vector \(m(x)\) which can be treated as an infinite string of random bits chosen independently by each node. In practice, it is enough to generate an \( O(\log n) \) -bit prefix of this string with very high probability.  </p>
+            In a skip graph, each node \(x\) holds two fields. The first is a key, which gives the node its ordering. Without loss of generality, consider all the keys as integers \(1, 2, . . . , n\). The second field is a membership vector \(m(x)\) which can be treated as an infinite string of random bits chosen independently by each node. In practice, it is enough to generate an \( O(\log n) \) -bit prefix of this string with very high probability. ... </p>
             </p>
 
             <h3> Operations </h3>
