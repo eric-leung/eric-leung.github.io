@@ -1,1 +1,99 @@
-"Hello World" 
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+
+    <title>Skip Graphs</title>
+  </head>
+  
+  <body>
+
+    <nav class="navbar navbar-expand-md navbar-dark bg-dark fixed-top">
+      <a class="navbar-brand" href="#">Skip Graphs</a>
+      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault" aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+
+      <div class="collapse navbar-collapse" id="navbarsExampleDefault">
+        <ul class="navbar-nav mr-auto">
+          <li class="nav-item active">
+            <a class="nav-link" href="#">Home <span class="sr-only">(current)</span></a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#">Placeholder</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#">Placeholder</a>
+          </li>
+        </ul>
+      </div>
+    </nav>
+
+    <main role="main" class="container">
+
+      <div class="starter-template">
+        <h1>Bootstrap starter template</h1>
+        <div class="tip" markdown="1">
+            <h3> Introduction </h3>
+            <p class="lead">
+            Skip graphs are a distributed data structure based on skip lists invented by James Aspnes and Gauri Shah in 2003. They were designed to perform better in a distributed environment compared to other data structures and are now used primarily in peer-to-peer networks. </p>
+
+            <p class="lead">
+            Skip graphs provide the same functionality of a balanced tree in a distributed system, which is where elements are stored in separate nodes that may fail at any time. Peer-to-peer networks have traditionally used distributed hash tables (DHT) which are based on balanced trees. One reason why skip graphs are used instead of DHTs is because of their ability to perform range and key ordered queries since there is no hashing of resource keys. Related resources are closer to each other in the skip graph, and this is useful for many real-world applications. Additionally, resource location and dynamic node addition and deletion can be done in logarithmic time giving it the same performance as DHTs. </p>
+            
+            <p class="lead">
+            A huge advantage over skip lists and other tree data structures is that skip graphs are very resilient with high tolerance to node failures. Lastly, basic operations such as constructing, searching, inserting, and repairing a skip graph can be done via straightforward algorithms. </p>
+            
+            <h3> Skip Lists Background </h3>
+            <p class="lead">
+            However, before we continue, a brief understanding of skip lists is needed. Skip lists are a randomized balanced tree data structure organized as a tower of increasingly spare linked lists. The easiest way to think about it is a subway system with local and express lanes where lists at the higher level allow the sequence to be traveled quicker. More formally, level 0 of a skip list is a linked list of all nodes in increasing key order. For each level \(i\) greater than 0, each node in level \(i - 1\) appears in level \(i\) independently with some fixed probability \(p\). </p>
+            
+            <p class="lead">
+            To search for a key \(x\) in a skip list, start at the first position of the topmost list. Then travel until the desired stop is found or passed. If the stop is not found, back up one and drop down to a lower level list. Continue this process until the desired stop is found. If the search moves past the level-0 list entirely, then no such key exists. This algorithm takes \( O(\log n) \) expected search time. **image here** </p>
+            
+            <p class="lead">
+            The insert algorithm uses randomization to decide how many levels the new key \(x\) should be added to. After inserting the new item at the level-0 list, flip a coin with fixed probability \(o\). If it returns tails, insertion is done. Otherwise, move to the next level up and insert \(x\) into this level at the appropriate position. Repeat the coin flip until insertion is done or top level is reached. **image here**</p>
+            
+            <p class="lead">
+            Deletion works by searching for the given key \(x\). If a position with key \(x\) is not found, then no such key exists. Otherwise, if a position with key \(x\) is found, then remove all occurrences of \(x\) from every level. The key \(x\) will be guaranteed to be at least in the level-0 list. If the uppermost level becomes empty, remove that level. **image here**</p>
+            
+            <p class="lead">
+            However, a skip list alone is not enough for the distributed system purposes stated above mainly because it lacks redundancy. As a result, it is vulnerable to both failures and congestion since only a few nodes appear in the topmost list. Each node in that list acts as a single point of failure whose removal would partition the list and form a hotspot that must process a constant fraction of all search operations. </p>
+            
+            <h3> Structure </h3>
+            <p class="lead">
+            Just like in a skip list, each of the \(n\) nodes in a skip graph is a member of multiple linked lists. The level-0 list consists of all nodes in sequence. Where a skip graph is distinguished from a skip list is that there may be many lists at level \(i\), and every
+            node participates in one of these lists. This goes until the nodes are splintered into singletons after \( O(\log n) \) levels, on average. One way to think about it is as a tree of skip lists that share lower layers. Another thing to notice is that there is always a full skip list inside of a skip graph. This can be found by grouping every level that has a node at extreme left. **image here**</p>
+            
+            <p class="lead">
+            In a skip graph, each node \(x\) holds two fields. The first is a key, which gives the node its ordering. Without loss of generality, the keys are considered to be integers \(1, 2, . . . , n\). The second field is a membership vector \(m(x)\) which can be treated as an infinite string of random bits chosen independently by each node. In practice, it is enough to generate an \( O(\log n) \) -bit prefix of this string with very high probability.  </p>
+            </p>
+
+            <h3> Operations </h3>
+
+            <h3> Fault Tolerance and Load Balancing </h3>
+
+            <h3> Limitations </h3>
+
+            <h3> References </h3>
+        </div>
+      </div>
+
+    </main><!-- /.container -->
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script>window.jQuery || document.write('<script src="../../assets/js/vendor/jquery-slim.min.js"><\/script>')</script>
+    <script src="../../assets/js/vendor/popper.min.js"></script>
+    <script src="../../dist/js/bootstrap.min.js"></script>
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=default'></script>
+
+  </body>
+</html>
