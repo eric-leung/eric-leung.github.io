@@ -55,7 +55,7 @@
             
             <p class="lead">
             To search for a key \(x\) in a skip list, start at the first position of the topmost list. Then travel until the desired stop is found or passed. If the stop is not found, back up one and drop down to a lower level list. Continue this process until the desired stop is found. If the search moves past the level-0 list entirely, then no such key exists. This algorithm takes \( O(\log n) \) expected search time. **image here** </p>
-            
+
             <p class="lead">
             The insert algorithm uses randomization to decide how many levels the new key \(x\) should be added to. After inserting the new item at the level-0 list, flip a coin with fixed probability \(o\). If it returns tails, insertion is done. Otherwise, move to the next level up and insert \(x\) into this level at the appropriate position. Repeat the coin flip until insertion is done or top level is reached. **image here**</p>
             
@@ -67,16 +67,103 @@
             
             <h3> Structure </h3>
             <p class="lead">
-            Just like in a skip list, each of the \(n\) nodes in a skip graph is a member of multiple linked lists in different levels. For example, the level-0 list consists of all nodes in sequence. Where a skip graph is distinguished from a skip list is that there will be multiple lists at level \(i\) for all \(i \geq 1\). Furthermore, every node participates in one of these lists meaning that every level will have all of the possible nodes allowing for redundnacy. This goes until the nodes are splintered into singletons after \( O(\log n) \) levels, on average. One way to think about it is as a tree of skip lists that share lower layers. Another thing to notice is that there is always a full skip list inside of a skip graph. This can be found by grouping every level that has a node at extreme left. **image here**</p>
+            Just like in a skip list, each of the \(n\) nodes in a skip graph is a member of multiple linked lists in different levels. For example, the level-0 list consists of all nodes in sequence. Where a skip graph is distinguished from a skip list is that there will be multiple lists at level \(i\) for all \(i \geq 1\). Furthermore, every node participates in one of these lists meaning that every level will have all of the possible nodes allowing for redundnacy. This goes until the nodes are splintered into singletons after \( O(\log n) \) levels, on average. One way to think about it is as a tree of skip lists that share lower layers. Another thing to notice is that there is always a full skip list inside of a skip graph. This can be found by grouping the membership vectors in each level that has a node at extreme left. </p>
+            <div class="row">
+              <div class="col-md-5">
+                <div class="thumbnail">
+                    <img src="Skip Graphs-1.jpg" style="width:120%">
+                    <div class="caption">
+                      <p>Figure X. Example of a skip graph.</p>
+                    </div>
+                </div>
+              </div>
+              <div class="col-md-5">
+                <div class="thumbnail">
+                    <img src="Skip Graphs-2.jpg" style="width:120%">
+                    <div class="caption">
+                      <p>Figure X. Example of the skip list inside of a skip graph.</p>
+                    </div>
+                </div>
+              </div>
+            </div>
             
             <p class="lead">
-            In a skip graph, each node \(x\) holds two fields. The first is a key, which gives the node its ordering. Without loss of generality, consider all the keys as integers \(1, 2, . . . , n\). The second field is a membership vector \(m(x)\) which can be treated as an infinite string of random bits chosen independently by each node. In practice, it is enough to generate an \( O(\log n) \) -bit prefix of this string with very high probability. ... </p>
+            In a skip graph, each node \(x\) holds two fields. The first is a key, which gives the node its ordering. Without loss of generality, consider all the keys as integers \(1, 2, . . . , n\). The second field is a membership vector \(m(x)\) which can be treated as an infinite string of random bits chosen independently by each node. In practice, it is enough to generate an \( O(\log n) \) -bit prefix of this string with very high probability. The idea of the membership vector is that every linked list in the skip graph is labeled by some finite string of bits \(w\), and a node \(x\) is in the list labeled by \(w\) if and only if \(w\) is a prefix of \(m(x)\). </p>
+
+            <p class="lead">
+            The skip graph's bottommost level is always a doubly-linked list \(S\) consisting of all the nodes in increasing key order, as shown in Figure X. In general, for each \(w\) the doubly-linked list \(S_w\) contains all nodes \(x\) for which \(w\) is a prefix of \(m(x)\). Any particular list \(S_w\) is part of level \(i\) if \(|w| = i\). Theoretically, this gives an infinite family of linked lists, but in an actual implementation, only those lists with at least two nodes are represented. Now more formally, we can describe a skip graph as a family \({S_w}\) of doubly-linked lists generated in this fashion. </p>
             </p>
 
             <h3> Operations </h3>
+            <p class="lead">
+            This section will go over the search, insert, and delete operations for a skip graph. However, there are some assumptions that were made in order to achieve the runtimes as described by Aspnes et al. First, we assume that the pointer variables are maintained by an underlying deadlockfree implementation of a distributed sorted doubly-linked list, as in Johnson and Colbrook [1994]. We also assume that operations on the doubly-linked lists can be treated as atomic, and that it supports search, insert, and delete operations, each taking O(k) time and O(k) messages starting from a node k hops away from its target. Lastly, we assume that operations on different doubly-linked lists can be performed in parallel without interference. 
+            </p>
 
+            <h4> Search </h4>
+            <p class="lead">
+            The search operation is essentially identical to the search in a skip list. There are some minor adaptations when implemented in the real-world to allow it to run on distributed systems. The search is started at the topmost level of the node seeking a key and proceeds along each level without overshooting the key, continuing at a lower level if required, until reaching level 0. Either the address of the node storing the search key, if such exists, or that of the node storing the largest key less than (or smallest key greater than) the search key is returned.
+            </p>
+            <div class="col-md-5">
+              <div class="thumbnail">
+                  <img src="Skip Graphs-3.jpg" style="width:130%">
+                  <div class="caption">
+                    <p>Figure X. Skip graph searching for node with key 62.</p>
+                  </div>
+              </div>
+            </div>
+
+            <h4> Insertion </h4>
+            <p class="lead">
+            A new node \(u\) knows some introducing node \(v\) in the skip graph that will help it to join. The result is node \(u\) inserts itself in one linked list at each level until it finds itself in a singleton list at the topmost level. The insert operation consists of two stages, which are as described below:
+            </p>
+            <ol class="lead">
+              <li> Node \(u\) starts a search for itself from \(v\) to find its neighbors at level 0 and links to them. </li>
+              <li> Node \(u\) finds the closest nodes \(s\) and \(y\) at each level \(l  ≥ 0\), \(s < u < y\), such that the membership vector prefixes of \(s\), \(u\), and \(y\) are the same up to length \(l + 1\). If they exist, link \(u\) to their membership vector to them at level \(l + 1\). </li>
+            </ol>
+            <p class="lead">
+            Because each existing node \(v\) does not require \(m(v)_{l+1}\) unless there exists another node \(u\) such that they both share the same prefixes up to length \(l + 1\), it can delay determining its value until a new node arrives asking for its value. Therefore, at any given time only a finite prefix of the membership vector of any node need be generated.
+            </p>
+
+            <div class="row">
+              <div class="col-md-5">
+                <div class="thumbnail">
+                    <img src="Skip Graphs-4.jpg" style="width:120%">
+                    <div class="caption">
+                      <p>Figure X. Skip graph inserting the new node with key 48.</p>
+                    </div>
+                </div>
+              </div>
+              <div class="col-md-5">
+                <div class="thumbnail">
+                    <img src="Skip Graphs-5.jpg" style="width:120%">
+                    <div class="caption">
+                      <p>Figure X. Skip graph after new node's insertion.</p>
+                    </div>
+                </div>
+              </div>
+            </div>
+
+            <h4> Deletion </h4>
+            <p class="lead">
+            When node u is to be removed from the skip graph, it deletes itself in parallel from all lists above level 0 and then deletes itself from level 0. 
+            </p>
+            <div class="col-md-5">
+              <div class="thumbnail">
+                  <img src="Skip Graph-delete.jpeg" style="width:130%">
+                  <div class="caption">
+                    <p>Figure X. Skip graph deleting all nodes with key 57.</p>
+                  </div>
+              </div>
+            </div>
             <h3> Fault Tolerance and Load Balancing </h3>
-
+            <div class="col-md-5">
+              <div class="thumbnail">
+                  <img src="Skip Graph-congestion.jpg" style="width:130%">
+                  <div class="caption">
+                    <p>Figure X. Example of a skip graph.</p>
+                  </div>
+              </div>
+            </div>
             <h3> Limitations </h3>
 
             <h3> References </h3>
