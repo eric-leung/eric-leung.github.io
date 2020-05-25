@@ -18,20 +18,6 @@
       <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault" aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
       </button>
-
-      <div class="collapse navbar-collapse" id="navbarsExampleDefault">
-        <ul class="navbar-nav mr-auto">
-          <li class="nav-item active">
-            <a class="nav-link" href="#">Home <span class="sr-only">(current)</span></a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="#">Placeholder</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="#">Placeholder</a>
-          </li>
-        </ul>
-      </div>
     </nav>
 
     <main role="main" class="container">
@@ -39,78 +25,86 @@
       <div class="starter-template">
         <h1>Bootstrap starter template</h1>
         <div class="tip" markdown="1">
-            <h3> Introduction </h3>
+        </br><h3> Introduction </h3>
             <p class="lead">
             Skip graphs are a distributed data structure based on skip lists invented by James Aspnes and Gauri Shah in 2003. They were designed to perform better in a distributed environment compared to other data structures and are now used primarily in peer-to-peer networks. </p>
 
             <p class="lead">
-            Skip graphs provide the same functionality of a balanced tree in a distributed system, which is where elements are stored in separate nodes that may fail at any time. Peer-to-peer networks have traditionally used distributed hash tables (DHT) which are based on balanced trees. One reason why skip graphs are used instead of DHTs is because of their ability to perform range and key ordered queries since there is no hashing of resource keys. Related resources are closer to each other in the skip graph, and this is useful for many real-world applications. Additionally, resource location and dynamic node addition and deletion can be done in logarithmic time giving it the same performance as DHTs. </p>
+            Skip graphs provide the same functionality of a balanced tree in a distributed system, which is where elements are stored in separate nodes that may fail at any time. Peer-to-peer networks have traditionally used <a href="https://en.wikipedia.org/wiki/Distributed_hash_table"> distributed hash tables </a> (DHT) which are based on balanced trees. One reason why skip graphs are used instead of DHTs is because of their ability to perform range and key ordered queries since there is no hashing of resource keys. Related resources are closer to each other in the skip graph, and this is useful for many real-world applications. Additionally, resource location and dynamic node addition and deletion can be done in logarithmic time giving it the same performance as DHTs. </p>
             
             <p class="lead">
             A huge advantage over skip lists and other tree data structures is that skip graphs are very resilient with high tolerance to node failures. Lastly, basic operations such as constructing, searching, inserting, and repairing a skip graph can be done via straightforward algorithms. </p>
             
             <h3> Skip Lists Background </h3>
             <p class="lead">
-            However, before we continue, a brief understanding of skip lists is needed. Skip lists are a randomized balanced tree data structure organized as a tower of increasingly spare linked lists. The easiest way to think about it is a subway system with local and express lanes where lists at the higher level allow the sequence to be traveled quicker. More formally, level 0 of a skip list is a linked list of all nodes in increasing key order. For each level \(i\) greater than 0, each node in level \(i - 1\) appears in level \(i\) independently with some fixed probability \(p\). </p>
+            However, before we continue, a brief understanding of skip lists is needed. Skip lists are a randomized balanced tree data structure organized as a tower of increasingly spare linked lists. The easiest way to think about it is a subway system with local and express lanes where lists at the higher level allow the sequence to be traveled quicker. More formally, level 0 of a skip list is a linked list of all nodes in increasing key order. For each level \(l\) greater than 0, each node in level \(l - 1\) appears in level \(l\) independently with some fixed probability \(p\). </p>
             
             <p class="lead">
-            To search for a key \(x\) in a skip list, start at the first position of the topmost list. Then travel until the desired stop is found or passed. If the stop is not found, back up one and drop down to a lower level list. Continue this process until the desired stop is found. If the search moves past the level-0 list entirely, then no such key exists. This algorithm takes \( O(\log n) \) expected search time. **image here** </p>
+            To search for a key \(x\) in a skip list, start at the first position of the topmost list. Then travel until the desired stop is found or passed. If the stop is not found, back up one and drop down to a lower level list. Continue this process until the desired stop is found. If the search moves past the level-0 list entirely, then no such key exists. This algorithm takes \( O(\log n) \) expected search time. We'll go over the time complexity for all the operations later.</p>
 
             <p class="lead">
-            The insert algorithm uses randomization to decide how many levels the new key \(x\) should be added to. After inserting the new item at the level-0 list, flip a coin with fixed probability \(o\). If it returns tails, insertion is done. Otherwise, move to the next level up and insert \(x\) into this level at the appropriate position. Repeat the coin flip until insertion is done or top level is reached. **image here**</p>
+            The insert algorithm uses randomization to decide how many levels the new key \(x\) should be added to. After inserting the new item at the level-0 list, flip a coin with fixed probability \(p\). If it returns tails, insertion is done. Otherwise, move to the next level up and insert \(x\) into this level at the appropriate position. Repeat the coin flip until insertion is done or top level is reached.</p>
             
             <p class="lead">
-            Deletion works by searching for the given key \(x\). If a position with key \(x\) is not found, then no such key exists. Otherwise, if a position with key \(x\) is found, then remove all occurrences of \(x\) from every level. The key \(x\) will be guaranteed to be at least in the level-0 list. If the uppermost level becomes empty, remove that level. **image here**</p>
+            Deletion works by searching for the given key \(x\). If a position with key \(x\) is not found, then no such key exists. Otherwise, if a position with key \(x\) is found, then remove all occurrences of \(x\) from every level. The key \(x\) will be guaranteed to be at least in the level-0 list. If the uppermost level becomes empty, remove that level.</p>
             
             <p class="lead">
-            However, a skip list alone is not enough for the distributed system purposes stated above mainly because it lacks redundancy. As a result, it is vulnerable to both failures and congestion since only a few nodes appear in the topmost list. Each node in that list acts as a single point of failure whose removal would partition the list and form a hotspot that must process a constant fraction of all search operations. </p>
+            However, a skip list alone is not enough for the distributed system purposes stated above mainly because it lacks redundancy. As a result, it is vulnerable to both failures and congestion since only a few nodes appear in the topmost list. Each node in that list acts as a single point of failure whose removal would partition the list and form a hot spot that must process a constant fraction of all search operations. </p>
             
             <h3> Structure </h3>
             <p class="lead">
-            Just like in a skip list, each of the \(n\) nodes in a skip graph is a member of multiple linked lists in different levels. For example, the level-0 list consists of all nodes in sequence. Where a skip graph is distinguished from a skip list is that there will be multiple lists at level \(i\) for all \(i \geq 1\). Furthermore, every node participates in one of these lists meaning that every level will have all of the possible nodes allowing for redundnacy. This goes until the nodes are splintered into singletons after \( O(\log n) \) levels, on average. One way to think about it is as a tree of skip lists that share lower layers. Another thing to notice is that there is always a full skip list inside of a skip graph. This can be found by grouping the membership vectors in each level that has a node at extreme left. </p>
-            <div class="row">
-              <div class="col-md-5">
-                <div class="thumbnail">
-                    <img src="Skip Graphs-1.jpg" style="width:120%">
-                    <div class="caption">
-                      <p>Figure X. Example of a skip graph.</p>
-                    </div>
-                </div>
-              </div>
-              <div class="col-md-5">
-                <div class="thumbnail">
-                    <img src="Skip Graphs-2.jpg" style="width:120%">
-                    <div class="caption">
-                      <p>Figure X. Example of the skip list inside of a skip graph.</p>
-                    </div>
-                </div>
+            Just like in a skip list, each of the \(n\) nodes in a skip graph is a member of multiple linked lists in different levels. For example, the level-0 list consists of all nodes in sequence. Where a skip graph is distinguished from a skip list is that there will be multiple lists at level \(l\) for all \(l \geq 1\). Furthermore, every node participates in one of these lists meaning that every level will have all of the possible nodes allowing for redundnacy. This goes until the nodes are splintered into singletons after \( O(\log n) \) levels, on average. One way to think about it is as a tree of skip lists that share lower layers. Another thing to notice is that there is always a full skip list inside of a skip graph. This can be found by grouping the membership vectors in each level that has a node at extreme left. </p>
+            <div class="col-md-5">
+              <div class="thumbnail">
+                  <img src="Skip Graphs-1.jpg" style="width:135%">
+                  <div class="caption">
+                    <p>Figure 1. Example of a skip graph.</p>
+                  </div>
               </div>
             </div>
+
             
             <p class="lead">
-            In a skip graph, each node \(x\) holds two fields. The first is a key, which gives the node its ordering. Without loss of generality, consider all the keys as integers \(1, 2, . . . , n\). The second field is a membership vector \(m(x)\) which can be treated as an infinite string of random bits chosen independently by each node. In practice, it is enough to generate an \( O(\log n) \) -bit prefix of this string with very high probability. The idea of the membership vector is that every linked list in the skip graph is labeled by some finite string of bits \(w\), and a node \(x\) is in the list labeled by \(w\) if and only if \(w\) is a prefix of \(m(x)\). </p>
+            In a skip graph, each node \(x\) holds two fields. The first is a key, which gives the node its ordering. Without loss of generality, consider all the keys as integers \(1, 2, . . . , n\). The second field is a membership vector \(m(x)\) which can be treated as an infinite string of random bits chosen independently by each node. In practice, it is enough to generate an \( O(\log n) \) -bit prefix of this string with very high probability. The idea of the membership vector is that every linked list in the skip graph is labeled by some finite string of bits \(w\), and a node \(x\) is in the list labeled by \(w\) if and only if \(w\) is a prefix of \(m(x)\) [2]. </p>
 
             <p class="lead">
-            The skip graph's bottommost level is always a doubly-linked list \(S\) consisting of all the nodes in increasing key order, as shown in Figure X. In general, for each \(w\) the doubly-linked list \(S_w\) contains all nodes \(x\) for which \(w\) is a prefix of \(m(x)\). Any particular list \(S_w\) is part of level \(i\) if \(|w| = i\). Theoretically, this gives an infinite family of linked lists, but in an actual implementation, only those lists with at least two nodes are represented. Now more formally, we can describe a skip graph as a family \({S_w}\) of doubly-linked lists generated in this fashion. </p>
+            The skip graph's bottommost level is always a doubly-linked list \(S\) consisting of all the nodes in increasing key order, as shown in Figure 1. In general, for each \(w\) the doubly-linked list \(S_w\) contains all nodes \(x\) for which \(w\) is a prefix of \(m(x)\). Any particular list \(S_w\) is part of level \(l\) if \(|w| = i\). Theoretically, this gives an infinite family of linked lists, but in an actual implementation, only those lists with at least two nodes are represented. Now more formally, we can describe a skip graph as a family \({S_w}\) of doubly-linked lists generated in this fashion. </p>
             </p>
 
             <h3> Operations </h3>
             <p class="lead">
-            This section will go over the search, insert, and delete operations for a skip graph. However, there are some assumptions that were made in order to achieve the runtimes as described by Aspnes et al. First, we assume that the pointer variables are maintained by an underlying deadlockfree implementation of a distributed sorted doubly-linked list, as in Johnson and Colbrook [1994]. We also assume that operations on the doubly-linked lists can be treated as atomic, and that it supports search, insert, and delete operations, each taking O(k) time and O(k) messages starting from a node k hops away from its target. Lastly, we assume that operations on different doubly-linked lists can be performed in parallel without interference. 
+            This section will go over the search, insert, and delete operations for a skip graph. However, there are some assumptions that were made in order to achieve the runtimes as described by Aspnes et al. [1]. First, we assume that the pointer variables are maintained by an underlying deadlockfree implementation of a distributed sorted doubly-linked list. We also assume that operations on the doubly-linked lists can be treated as atomic, and that it supports search, insert, and delete operations, each taking \(O(k)\) time and \(O(k)\) messages starting from a node \(k\) spaces away from its target. Lastly, we assume that operations on different linked lists can be performed in parallel without interference. 
             </p>
 
             <h4> Search </h4>
             <p class="lead">
-            The search operation is essentially identical to the search in a skip list. There are some minor adaptations when implemented in the real-world to allow it to run on distributed systems. The search is started at the topmost level of the node seeking a key and proceeds along each level without overshooting the key, continuing at a lower level if required, until reaching level 0. Either the address of the node storing the search key, if such exists, or that of the node storing the largest key less than (or smallest key greater than) the search key is returned.
+            The search operation is essentially identical to the search in a skip list. There are some minor adaptations when implemented in the real-world to allow it to run on distributed systems, but it doesn't affect the algorithm or runtime. The search in a skip graph is started at the topmost level of the node seeking a key. It then proceeds along each level without overshooting the key, dropping to a lower level if overshot, and repeating until reaching level 0. Either the node storing the search key, if it exists, or that of the node storing the largest key less than (or smallest key greater than) the search key is returned.
             </p>
-            <div class="col-md-5">
-              <div class="thumbnail">
-                  <img src="Skip Graphs-3.jpg" style="width:130%">
-                  <div class="caption">
-                    <p>Figure X. Skip graph searching for node with key 62.</p>
-                  </div>
+            <div class="row">
+              <div class="col-md-5">
+                <div class="thumbnail">
+                    <img src="Skip Graphs-3.jpg" style="width:120%">
+                    <div class="caption">
+                      <p>Figure 2. Skip graph searching for node with key 62.</p>
+                    </div>
+                </div>
+              </div>
+              <div class="col-md-5">
+                <div class="thumbnail">
+                    <img src="Skip Graphs-9.jpg" style="width:120%">
+                    <div class="caption">
+                      <p>Figure 3. Skip list formed from grouping lists with starting node of the search.</p>
+                    </div>
+                </div>
               </div>
             </div>
+            <p class="lead">
+            The search operation in a skip graph \(S\) with \(n\) nodes takes expected \(O( \log n)\) messages and \(O( \log n)\) time. A search that starts at node \(z\) in the skip graph will follow the same path in \(S\) as in \(S_{m(z)}\), where \(S_{m(z)}\) is a skip list restriction of node \(z\). As seen in figure 3, \(S_{m(z)}\) is formed by grouping the linked lists in each level that contain the starting element of the search. In this case, node \(z\) is the node with key 12, and the groupings of these lists gives a skip list. Thus, we can directly apply the skip-list search analysis to analyze the search in \(S\). 
+            </p>
+
+            <p class="lead">
+            Let \( \Sigma \) be the alphabet for the membership vectors of all nodes in the skip graph \(S\). We will analyze the search path backwards, travelling up and to the left [4]. The number of upward moves is equal to the number of levels. On average there will be \(O( \log n \frac{1}{log(1/p)}) \) levels with \(n\) nodes, for \(p = | \Sigma |^{−1}\). The rest of the cost comes from the number of leftward moves. This is bounded by the number of nodes of the higher-up levels, and at most \(\frac{1}{1−p}\) nodes are searched on average at each level. This adds up to a total of \( O( \log n \frac{1}{(1−p)  \log (1/p)}) \) expected messages and \( O( \log n \frac{1}{(1−p)  \log (1/p)}) \) expected time. Therefore, with fixed p, the search operation takes expected \(O( \log n)\) messages and \(O( \log n)\) time [1].
+            </p>
 
             <h4> Insertion </h4>
             <p class="lead">
@@ -121,15 +115,14 @@
               <li> Node \(u\) finds the closest nodes \(s\) and \(y\) at each level \(l  ≥ 0\), \(s < u < y\), such that the membership vector prefixes of \(s\), \(u\), and \(y\) are the same up to length \(l + 1\). If they exist, link \(u\) to their membership vector to them at level \(l + 1\). </li>
             </ol>
             <p class="lead">
-            Because each existing node \(v\) does not require \(m(v)_{l+1}\) unless there exists another node \(u\) such that they both share the same prefixes up to length \(l + 1\), it can delay determining its value until a new node arrives asking for its value. Therefore, at any given time only a finite prefix of the membership vector of any node need be generated.
+            Because each existing node \(v\) does not require \(m(v)_{l+1}\) unless there exists another node \(u\) such that they both share the same prefixes up to length \(l + 1\), it can delay determining its value until a new node arrives asking for its value. Therefore, at any given time only a finite prefix of the membership vector of any node need be generated. [2]
             </p>
-
             <div class="row">
               <div class="col-md-5">
                 <div class="thumbnail">
                     <img src="Skip Graphs-4.jpg" style="width:120%">
                     <div class="caption">
-                      <p>Figure X. Skip graph inserting the new node with key 48.</p>
+                      <p>Figure 4. Skip graph inserting the new node with key 48.</p>
                     </div>
                 </div>
               </div>
@@ -137,36 +130,103 @@
                 <div class="thumbnail">
                     <img src="Skip Graphs-5.jpg" style="width:120%">
                     <div class="caption">
-                      <p>Figure X. Skip graph after new node's insertion.</p>
+                      <p>Figure 5. Skip graph after new node's insertion.</p>
                     </div>
                 </div>
               </div>
             </div>
+            <p class="lead">
+            The insert operation in a skip graph with n nodes takes expected \( O( \log n)\)  messages and \( O( \log n)\)  time. Fix \( p = | \Sigma | \). The first step of insertion is to link the new node at level 0 so the new node u performs one search operation. This takes \( O( \log n)\) expected messages and \( O( \log n)\) expected time as discussed above. In the next step, node u communicates with an average of \(\frac{1}{p}\) nodes when scanning backwards to find its level \( l + 1 \) predecessor. This is because only that many nodes got promoted from the previous level. The insert operation for a linked list is assumed to take \(O(1)\) time after the location is found. Therefore, summing over all levels and including the cost of the initial search gives us \( O( \log n)\)  total time and messages with high probability because there will be an average of \( O( \log n)\)  total levels with \(n\) nodes [1]. 
+            </p>
 
             <h4> Deletion </h4>
             <p class="lead">
-            When node u is to be removed from the skip graph, it deletes itself in parallel from all lists above level 0 and then deletes itself from level 0. 
+            When node \(u\) is to be removed from the skip graph, it deletes itself in parallel from all the lists above level 0. Then, it deletes itself from the level 0 list. 
             </p>
             <div class="col-md-5">
               <div class="thumbnail">
                   <img src="Skip Graph-delete.jpeg" style="width:130%">
                   <div class="caption">
-                    <p>Figure X. Skip graph deleting all nodes with key 57.</p>
+                    <p>Figure 6. Skip graph deleting all nodes with key 57.</p>
                   </div>
               </div>
             </div>
-            <h3> Fault Tolerance and Load Balancing </h3>
+            <p class="lead">
+            The delete operation in a skip graph with \(n\) nodes takes expected \(O( \log n)\) messages and \(O(1)\) time. This is because we assumed that each linked-list delete operation takes \(O(1)\) messages and \(O(1)\) time starting from \(u\). Since all but one of these operations proceed in parallel, the total time is still \(O(1)\). For total messages, it ends up being \(O( \log n)\) because they get summed up over all \(O( \log n)\) expected levels [1].
+            </p>
+            
+
+            <h3> Fault Tolerance </h3>
+            <p class="lead">
+            In skip graphs, fault tolerance describes the number of nodes which can be separated from the primary component of the skip graph by failures of other nodes. Aspnes et al. examined two failure models which were random failures and adversarial failures. 
+            </p>
+
+            <h4> Random Failure </h4>
+            <p class="lead">
+            In the random failure model, any node could fail independently from any other node with some probability. Skip graphs are highly resistant to this type of random failure. By using redundant links to avoid having too many failed neighboring nodes, normal operations can continue and tolerant a large number of node failures. Simulations performed by Aspnes et al. show that a skip graph with 131,072 nodes was able tolerate up to 60% of its nodes failing before surviving nodes were isolated [1]. Doing analysis on just the search operation, the fact that the average search involves only \(O( \log n)\) nodes establishes that most searches succeed as long as the proportion of failed nodes is substantially less than \(O(\frac{1}{ \log n})\).
+            </p>
+
+            <h4> Adversarial Failure </h4>
+            <p class="lead">
+            The adversarial failure model assumes an adversary can observe the data structure and choose specific nodes to fail in order to cause the worst possible node disconnections. Theoretical analysis from Aspnes et al. shows that fault tolerance depends on the expansion ratio of the skip graph. For a set of nodes \(A\) in the graph \(G\), let \( \delta A\) represent the number of nodes not in \(A\) but adjacent to a node in \(A\). The expansion ratio is \( \delta A \) divided by the number of nodes in \(A\), and it determines the resilience because separating a set \(A\) from the primary component requires all nodes in \( \delta A\) to fail. If skip graphs have a sufficiently large expansion ratio of \( \Omega \left({\frac {1}{\log n}}\right) \), which they have with high probability, then at most \( O(f\log n) \) nodes may be separated by \(f\) specifically targeted failures.
+            </p>
+
+            <h3> Load Balancing </h3>
+            <p class="lead">
+            In addition to fault tolerance, a skip graph provides some congestion control and load balancing, which are desirable traits in a distributed network. This is done by smoothing out hot spots of highly used nodes caused by popular search targets. Just as a node’s connectivity depends on the survival of its neighbors, its message load depends on the popularity of its neighbors as search targets. However, we can show that this effect drops off rapidly with distance. This means that far away nodes from a popular target in the bottommost list of a skip graph get little increased message load on average. More precisely, the probability that a particular search uses a node between the source \(s\) and target \(t\) drops off inversely with the distance from node to target.
+            </p>
             <div class="col-md-5">
               <div class="thumbnail">
                   <img src="Skip Graph-congestion.jpg" style="width:130%">
                   <div class="caption">
-                    <p>Figure X. Example of a skip graph.</p>
+                    <p>Figure 7. Example of two skip graphs that have node u in and not in the search path.</p>
                   </div>
               </div>
             </div>
+            <p class="lead">
+            First, let \(T\) be the random variable representing the set of tallest nodes in the interval \([u, t]\). As seen in figure 7, there is an observation that node \(u\) is on the search path from \(s\) to \(t\) only if it is in \(T\). There are \(d + 1\) nodes in this \(T\) interval. If there are \(k\) tallest nodes, then the probability that \(u\) is among them is \( \frac{k}{d+1} \). With these, the probability that node \(u\) is in \(T\) can be found using the following equation:
+            </p>
+            <div class="col-md-5">
+              <div class="thumbnail">
+                  <img src="formula1.JPG" style="width:90%">
+                  <div class="caption">
+                    <p>Figure 8. Equation for probability of node u in T. [1]</p>
+                  </div>
+              </div>
+            </div>
+            <p class="lead">
+            The expected size of \(T\) is less than 2. This is because all \(d + 1\) nodes have height at least 0, and in general each node with height at least \(k\) has height at least \(k + 1\) with independent probability \(p = \frac{1}{2}\). The set \(T\) is the last non-empty set which means it consists of the nodes that are left at the last level before all nodes vanish. Therefore, putting it all together, \(Pr[u \in T] < \frac{2}{d+1}\). 
+            </p>
+            
             <h3> Limitations </h3>
+            <p class="lead">
+            A drawback of skip graphs is that there is no fast repair mechanism. With enough node failures, the skip graph can be left in an inconsistent state. However, currently the only way to remove and repair a skip graph is to build a new skip graph with just the surviving nodes. 
+            </p>
+            <div class="col-md-5">
+              <div class="thumbnail">
+                  <img src="Skip Graphs-6.jpg" style="width:130%">
+                  <div class="caption">
+                    <p>Figure 9. Skip graph after several iterations of insertion using initiator node.</p>
+                  </div>
+              </div>
+            </div>
+            <p class="lead">
+            To build a skip graph from scratch, there are several methods. The first, as illustrated in figure 9 is to use an initiator node. This works by having that initiator node recruit all the remaining nodes using the standard insertion algorithm described above. This node could have a value of \(- \infty \) and serve as the introducing node for the first node with a finite key value to enter the skip graph. The total runtime is \(O(n \log n)\) because the \(O( \log n)\) insertion algorithm is run on \(n\) nodes. 
+            </p>
+
+            <p class="lead">
+            Another method described in Angluin et al. [3] is to use a faster parallel mechanism that can reconstruct a skip graph from an arbitrary fragment in \(O(\log^2 n)\) time under certain assumptions about key length. However, we won’t go into detail on that algorithm since it’s outside of this project's scope. 
+            </p>
+            
 
             <h3> References </h3>
+            <ul style="list-style-type:none;">
+                <li>[1] <a href="https://dl.acm.org/doi/10.1145/1290672.1290674"> James Aspnes and Gauri Shah. 2003. Skip graphs. </a></li>
+                <li>[2] <a href="http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.649.7044&rep=rep1&type=pdf"> Shalini Batra and Amritpal Singh. 2013. A short survey of Advantages and Applications of Skip Graphs. </a></li>
+                <li>[3] <a href="https://www.cs.yale.edu/homes/aspnes/papers/spaa2005-construction.pdf"> Thorsten Götte, Kristian Hinnenthal, Christian Scheideler. 2005. Fast construction of overlay networks. </a> </li>
+                <li>[4] <a href="https://15721.courses.cs.cmu.edu/spring2018/papers/08-oltpindexes1/pugh-skiplists-cacm1990.pdf"> William Pugh. 1990. Skip Lists: A Probabilistic Alternative to Balanced Trees. </a> </li>
+            </ul>  
+            
         </div>
       </div>
 
